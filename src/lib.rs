@@ -7,4 +7,6 @@ fn it_works() {
     let connection = Connection::connect("127.0.0.1:9481").unwrap();
 
     connection.request();
+
+    connection.join().unwrap();
 }

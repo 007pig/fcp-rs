@@ -6,37 +6,37 @@ use std::time::Duration;
 use super::Connection;
 
 
-enum ConnectionStatus {
+pub enum ConnectionStatus {
     Closed,
     Connected(Connection),
     Disconnected,
 }
 
-pub struct ConnectionManager {
-    connections: HashMap<&str, ConnectionStatus>,
+pub struct ConnectionManager<'a> {
+    connections: HashMap<&'a str, ConnectionStatus>,
 }
 
-impl ConnectionManager {
-    pub fn new() -> ConnectionManager {
+impl<'a> ConnectionManager<'a> {
+    pub fn new() -> ConnectionManager<'a> {
         ConnectionManager {
             connections: HashMap::new(),
         }
     }
     
-    pub fn create_connection<A: ToSocketAddrs>(&mut self, key: &str, addr: A) {
-        let connection = Connection.connect(addr);
+    pub fn create_connection<A: ToSocketAddrs>(&mut self, key: &'a str, addr: &A) {
+        let mut connection = Connection::connect(addr);
 
         while connection.is_err() {
             // Sleep some time and try again
             thread::sleep_ms(5000);
             
-            connection = Connection.connect(attr);
+            connection = Connection::connect(addr);
         }
 
-        self.connections.insert(key, connection);
+        self.connections.insert(key, ConnectionStatus::Connected(connection.unwrap()));
     }
 
-    pub fn get_connection(&self, key: &str) -> ConnectionStatus {
+    pub fn get_connection(&self, key: &str) -> Option<&ConnectionStatus> {
         self.connections.get(key)
     }
 }

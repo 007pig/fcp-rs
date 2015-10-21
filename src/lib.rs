@@ -2,9 +2,22 @@ pub mod connection;
 
 #[test]
 fn it_works() {
-    use connection::Connection;
+    use connection::{ConnectionManager, ConnectionStatus};
+    use std::thread;
 
-    let connection = Connection::connect("127.0.0.1:9481").unwrap();
+    let mut connection_manager = ConnectionManager::new();
 
-    connection.request();
+    connection_manager.create_connection("connection_1", &"127.0.0.1:9481");
+
+    if let Some(connection_status) = connection_manager.get_connection("connection_1") {
+        match connection_status {
+            &ConnectionStatus::Connected(ref connection) => 
+                connection.request(),
+                
+            _ => unimplemented!(), 
+        }
+    }
+
+    thread::park();
+
 }

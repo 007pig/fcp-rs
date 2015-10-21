@@ -1,7 +1,6 @@
 use std::net::ToSocketAddrs;
 use std::collections::HashMap;
 use std::thread;
-use std::time::Duration;
 
 use super::Connection;
 

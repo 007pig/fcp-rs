@@ -35,8 +35,12 @@ impl<'a> ConnectionManager<'a> {
         self.connections.insert(key, ConnectionStatus::Connected(connection.unwrap()));
     }
 
-    pub fn get_connection(&mut self, key: &str) -> Option<&mut ConnectionStatus> {
+    pub fn get_connection_mut(&mut self, key: &str) -> Option<&mut ConnectionStatus> {
         self.connections.get_mut(key)
+    }
+
+    pub fn get_connection(&self, key: &str) -> Option<&ConnectionStatus> {
+        self.connections.get(key)
     }
 
     pub fn join_connection(&mut self, key: &str) -> thread::Result<()> {

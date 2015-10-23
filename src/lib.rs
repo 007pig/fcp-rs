@@ -11,13 +11,13 @@ fn it_works() {
 
     if let Some(connection_status) = connection_manager.get_connection("connection_1") {
         match connection_status {
-            &ConnectionStatus::Connected(ref connection) => 
-                connection.request(),
+            &mut ConnectionStatus::Connected(ref mut connection) => {
+                connection.request();
+                connection.join().unwrap();
+            },
                 
             _ => unimplemented!(), 
         }
     }
-
-    thread::park();
 
 }

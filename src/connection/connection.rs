@@ -7,7 +7,7 @@ use std::thread;
 
 pub struct Connection {
     stream: TcpStream,
-    reader_thread: thread::JoinHandle<()>,
+    reader_thread: Option<thread::JoinHandle<()>>,
 }
 
 impl Connection {
@@ -35,7 +35,7 @@ impl Connection {
 
         Ok(Connection {
             stream: stream,
-            reader_thread: reader_thread
+            reader_thread: Some(reader_thread),
         })
     }
 
@@ -48,10 +48,13 @@ impl Connection {
 
     }
 
-    pub fn join(self) -> thread::Result<()> {
-        try!(self.reader_thread.join());
-
-        Ok(())
+    pub fn join(&mut self) -> thread::Result<()> {
+        if let Some(reader_thread) = self.reader_thread.take() {
+            reader_thread.join()
+        }
+        else {
+            Err(Box::new("Thread already joined"))
+        }
     }
 }
 

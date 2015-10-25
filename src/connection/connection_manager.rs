@@ -1,6 +1,7 @@
 use std::net::ToSocketAddrs;
 use std::collections::HashMap;
 use std::thread;
+use std::sync::mpsc::{Sender, Receiver};
 
 use super::Connection;
 
@@ -13,12 +14,16 @@ pub enum ConnectionStatus {
 
 pub struct ConnectionManager<'a> {
     connections: HashMap<&'a str, ConnectionStatus>,
+    senders: HashMap<&'a str, Sender>,
+    receiver: &Receiver
 }
 
 impl<'a> ConnectionManager<'a> {
-    pub fn new() -> ConnectionManager<'a> {
+    pub fn new(receiver: &Receiver) -> ConnectionManager<'a> {
         ConnectionManager {
             connections: HashMap::new(),
+            senders: HashMap::new(),
+            receiver: receiver,
         }
     }
     

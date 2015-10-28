@@ -2,12 +2,17 @@ use std::io;
 use std::io::prelude::*;
 use std::net::{ToSocketAddrs, TcpStream};
 use std::io::BufReader;
+use std::sync::mpsc::*;
 
 use std::thread;
+
+use super::{EventCmd, EventResult};
 
 pub struct Connection {
     stream: TcpStream,
     reader_thread: Option<thread::JoinHandle<()>>,
+    tx_cmd: Sender<EventCmd>,
+    rx_result: Receiver<EventResult>,
 }
 
 impl Connection {
@@ -15,6 +20,14 @@ impl Connection {
         let stream = try!(TcpStream::connect(addr));
 
         let reader_stream = try!(stream.try_clone());
+
+        // Channel to receive thread command from sender
+        let (tx_cmd, rx_cmd) = channel::<EventCmd>();
+
+        // Channel to send thread result to receiver
+        let (tx_result, rx_result) = channel::<EventResult>();
+        
+        let tx_cmd = tx_cmd.clone();
         let reader_thread = thread::spawn(move || {
 
             println!("reading!");
@@ -23,11 +36,14 @@ impl Connection {
 
             for line in reader.lines() {
                 let msg = line.unwrap();
+                let mut result_msg = String::new();
                 
                 println!("buf: {:?}", &msg);
+                result_msg.push_str(&*msg);
 
                 if msg == "EndMessage" {
-                    break;
+                    tx_result.send(EventResult::Message(msg));
+                    result_msg = String::new();
                 }
             }
             
@@ -36,6 +52,8 @@ impl Connection {
         Ok(Connection {
             stream: stream,
             reader_thread: Some(reader_thread),
+            tx_cmd: tx_cmd,
+            rx_result: rx_result,
         })
     }
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver};
 
-use super::Connection;
+use super::{Connection, EventCmd, EventResult};
 
 
 pub enum ConnectionStatus {
@@ -12,22 +12,18 @@ pub enum ConnectionStatus {
     Disconnected,
 }
 
-pub struct ConnectionManager<'a> {
-    connections: HashMap<&'a str, ConnectionStatus>,
-    senders: HashMap<&'a str, Sender>,
-    receiver: &Receiver
+pub struct ConnectionManager {
+    connections: HashMap<&'static str, ConnectionStatus>,
 }
 
-impl<'a> ConnectionManager<'a> {
-    pub fn new(receiver: &Receiver) -> ConnectionManager<'a> {
+impl ConnectionManager {
+    pub fn new() -> ConnectionManager {
         ConnectionManager {
             connections: HashMap::new(),
-            senders: HashMap::new(),
-            receiver: receiver,
         }
     }
     
-    pub fn create_connection<A: ToSocketAddrs>(&mut self, key: &'a str, addr: &A) {
+    pub fn create_connection<A: ToSocketAddrs>(&mut self, key: &'static str, addr: &A) {
         let mut connection = Connection::connect(addr);
 
         while connection.is_err() {

@@ -1,6 +1,7 @@
 use std::net::ToSocketAddrs;
 use std::collections::HashMap;
 use std::thread;
+use std::io;
 
 use super::{Connection};
 
@@ -35,25 +36,36 @@ impl ConnectionManager {
         self.connections.insert(key, ConnectionStatus::Connected(connection.unwrap()));
     }
 
-    pub fn get_connection_mut(&mut self, key: &str) -> Option<&mut ConnectionStatus> {
-        self.connections.get_mut(key)
-    }
-
-    pub fn get_connection(&self, key: &str) -> Option<&ConnectionStatus> {
-        self.connections.get(key)
-    }
-
-    pub fn join_connection(&mut self, key: &str) -> thread::Result<()> {
+    pub fn get_connection(&mut self, key: &str) -> Option<&mut Connection> {
         if let Some(connection_status) = self.connections.get_mut(key) {
             match connection_status {
                 &mut ConnectionStatus::Connected(ref mut connection) => {
-                    return connection.join()
+                    return Some(connection);
                 },
-                _ => unimplemented!()
+                _ => return None,
             }
+        }
+        else {
+            None
+        }
+    }
+
+    pub fn join_connection(&mut self, key: &str) -> thread::Result<()> {
+        if let Some(connection) = self.get_connection(key) {
+            connection.join()
         }
         else {
             Err(Box::new("Connection doesn't exist"))
         }
+    }
+
+    pub fn request_str(&mut self, key: &str, str_data: &str) -> io::Result<()>{
+        if let Some(connection) = self.get_connection(key) {
+            connection.request_str(str_data)
+        }
+        else {
+            Err(io::Error::new(io::ErrorKind::NotFound, "Connection doesn't exist"))
+        }
+        
     }
 }

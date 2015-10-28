@@ -2,9 +2,9 @@ use std::net::ToSocketAddrs;
 use std::collections::HashMap;
 use std::thread;
 use std::io;
+use std::sync::mpsc::*;
 
-use super::{Connection};
-
+use super::{Connection, EventCmd, EventResult};
 
 pub enum ConnectionStatus {
     Closed,
@@ -36,7 +36,7 @@ impl ConnectionManager {
         self.connections.insert(key, ConnectionStatus::Connected(connection.unwrap()));
     }
 
-    pub fn get_connection(&mut self, key: &str) -> Option<&mut Connection> {
+    pub fn get_connection_mut(&mut self, key: &str) -> Option<&mut Connection> {
         if let Some(connection_status) = self.connections.get_mut(key) {
             match connection_status {
                 &mut ConnectionStatus::Connected(ref mut connection) => {
@@ -50,8 +50,22 @@ impl ConnectionManager {
         }
     }
 
+    pub fn get_connection_ref(&self, key: &str) -> Option<&Connection> {
+        if let Some(connection_status) = self.connections.get(key) {
+            match connection_status {
+                &ConnectionStatus::Connected(ref connection) => {
+                    return Some(connection);
+                },
+                _ => return None,
+            }
+        }
+        else {
+            None
+        }
+    }
+
     pub fn join_connection(&mut self, key: &str) -> thread::Result<()> {
-        if let Some(connection) = self.get_connection(key) {
+        if let Some(connection) = self.get_connection_mut(key) {
             connection.join()
         }
         else {
@@ -60,12 +74,21 @@ impl ConnectionManager {
     }
 
     pub fn request_str(&mut self, key: &str, str_data: &str) -> io::Result<()>{
-        if let Some(connection) = self.get_connection(key) {
+        if let Some(connection) = self.get_connection_mut(key) {
             connection.request_str(str_data)
         }
         else {
             Err(io::Error::new(io::ErrorKind::NotFound, "Connection doesn't exist"))
         }
         
+    }
+
+    pub fn get_rx_result(&self, key: &str) -> io::Result<&Receiver<EventResult>> {        
+        if let Some(connection) = self.get_connection_ref(key) {
+            Ok(connection.get_rx_result())
+        }
+        else {
+            Err(io::Error::new(io::ErrorKind::NotFound, "Connection doesn't exist"))
+        }
     }
 }

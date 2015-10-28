@@ -27,23 +27,37 @@ impl Connection {
         // Channel to send thread result to receiver
         let (tx_result, rx_result) = channel::<EventResult>();
         
-        let tx_cmd = tx_cmd.clone();
         let reader_thread = thread::spawn(move || {
 
             println!("reading!");
 
-            let reader = BufReader::new(reader_stream);
+            let mut reader = BufReader::new(reader_stream);
 
-            for line in reader.lines() {
-                let msg = line.unwrap();
-                let mut result_msg = String::new();
-                
-                println!("buf: {:?}", &msg);
-                result_msg.push_str(&*msg);
+            let mut result_msg = String::new();
+            let mut line = String::new();
+            
+            loop {
+                reader.read_line(&mut line).unwrap();
 
-                if msg == "EndMessage" {
-                    tx_result.send(EventResult::Message(msg));
-                    result_msg = String::new();
+                // Concatenate Line to result message
+                result_msg.push_str(&line);
+
+                if line == "EndMessage\n" {
+                    tx_result.send(EventResult::Message(result_msg.clone())).unwrap();
+                    result_msg.clear();
+                }
+
+                // Clear line buffer
+                line.clear();
+
+                match rx_cmd.try_recv() {
+                    Ok(event_cmd) => {
+                        match event_cmd {
+                            EventCmd::Close => break,
+                        }
+                    },
+                    Err(TryRecvError::Disconnected) => break,
+                    Err(_) => (),
                 }
             }
             
@@ -68,6 +82,14 @@ impl Connection {
 
         Ok(())
 
+    }
+
+    pub fn get_rx_result(&self) -> &Receiver<EventResult> {
+        &self.rx_result
+    }
+
+    pub fn get_tx_cmd(&self) -> &Sender<EventCmd> {
+        &self.tx_cmd
     }
 
     pub fn join(&mut self) -> thread::Result<()> {

@@ -57,12 +57,16 @@ impl Connection {
         })
     }
 
-    pub fn request(&self) {
+    pub fn request_str(&self, str_data: &str) -> io::Result<()> {
 
-        let mut stream = self.stream.try_clone().unwrap();
+        let mut stream = try!(self.stream.try_clone());
         
-        let _ = stream.write(b"ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n");
+        //let _ = stream.write(b"ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n");
+        let _ = try!(stream.write(str_data.as_bytes()));
+
         println!("stream sent!");
+
+        Ok(())
 
     }
 

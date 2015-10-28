@@ -1,9 +1,8 @@
 use std::net::ToSocketAddrs;
 use std::collections::HashMap;
 use std::thread;
-use std::sync::mpsc::{Sender, Receiver};
 
-use super::{Connection, EventCmd, EventResult};
+use super::{Connection};
 
 
 pub enum ConnectionStatus {

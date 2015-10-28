@@ -11,7 +11,7 @@ fn it_works() {
     if let Some(connection_status) = connection_manager.get_connection_mut("connection_1") {
         match connection_status {
             &mut ConnectionStatus::Connected(ref mut connection) => {
-                connection.request();
+                connection.request_str("ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n");
                 connection.join().unwrap();
             },
                 

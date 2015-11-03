@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 trait Message {
 
@@ -26,8 +26,10 @@ trait Message {
 
         let mut result_buf;
         
-        if let Some(payload) = self.get_payload() {
-            // TODO: DataLength
+        if let Some(payload) = self.get_payload() {            
+            message_str.push_str(format!("DataLength={}", payload.len()));
+            message_str.push_str("\n");
+            
             message_str.push_str("Data\n");
             result_buf = message_str.into_bytes();
 

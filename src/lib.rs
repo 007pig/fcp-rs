@@ -1,4 +1,5 @@
 pub mod connection;
+pub mod message;
 
 #[test]
 fn it_works() {

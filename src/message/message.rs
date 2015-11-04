@@ -6,7 +6,7 @@ trait Message {
 
     fn set_field(&mut self, key: &str, data: &str);
 
-    fn get_all_fields() -> HashMap<&str, &str>;
+    fn get_all_fields(&self) -> HashMap<&str, &str>;
 
     fn set_payload(&mut self, data: &[u8]);
 

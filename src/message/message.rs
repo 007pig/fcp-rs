@@ -1,8 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-pub trait Message {
-
-    fn new() -> Self;
+pub trait Message : Send{
 
     fn get_message_name(&self) -> &str;
 

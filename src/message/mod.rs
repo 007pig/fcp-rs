@@ -5,6 +5,6 @@ pub use self::message::Message;
 pub use self::client_hello::ClientHello;
 
 
-pub fn parse_message(message_str: &str, payload: &[u8]) -> Message {
-    
+pub fn parse_message(message_str: &str, payload: Option<&[u8]>) -> Result<Box<Message>, String> {
+     
 }

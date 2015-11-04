@@ -1,4 +1,6 @@
 use std::io;
+use std::sync::Arc;
+
 use ::message::Message;
 
 /// Event of command which is sent TO reader thread

@@ -8,7 +8,7 @@ pub struct ClientHello<'a> {
     payload: Option<&'a [u8]>,
 }
 
-impl<'a> Message for ClientHello<'a> {
+impl<'a> ClientHello<'a> {
 
     pub fn new() -> ClientHello<'a> {
         ClientHello {
@@ -17,6 +17,10 @@ impl<'a> Message for ClientHello<'a> {
             payload: None,
         }
     }
+
+}
+
+impl<'a> Message for ClientHello<'a> {
 
     pub fn get_message_name(&self) -> &str {
         self.message_name

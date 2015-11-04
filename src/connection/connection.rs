@@ -3,11 +3,14 @@ use std::io::prelude::*;
 use std::net::{ToSocketAddrs, TcpStream};
 use std::io::BufReader;
 use std::sync::mpsc::*;
+use std::sync::Arc;
+
+use std::str::FromStr;
 
 use std::thread;
 
 use super::{EventCmd, EventResult};
-use ::message::Message;
+use ::message::{parse_message, Message};
 
 pub struct Connection {
     stream: TcpStream,
@@ -47,7 +50,10 @@ impl Connection {
                 result_msg.push_str(&line);
 
                 if line == "EndMessage\n" {
-                    tx_result.send(EventResult::Message(result_msg.clone())).unwrap();
+
+                    let mut message = parse_message(result_msg.as_str(), None).unwrap();
+                    
+                    tx_result.send(EventResult::Message(message)).unwrap();
                     // Cleanup
                     result_msg.clear();
                     data_length = 0;
@@ -57,7 +63,7 @@ impl Connection {
                     // Try to get DataLength
                     let v: Vec<&str> = line.as_str().split('=').collect();
                     if v.len() == 2 {
-                        data_length = u64::from_str(v[1].trim());
+                        data_length = u64::from_str(v[1].trim()).unwrap();
                     }
                 }
 
@@ -65,7 +71,8 @@ impl Connection {
                     // Read payload buf
                     let mut payload_handle = reader.take(data_length);
 
-                    payload = [0; data_length];
+                    let tmp_vec = Vec::with_capacity(data_length as usize);
+                    payload = &tmp_vec[..];
                     payload_handle.read(&mut payload);
 
                     

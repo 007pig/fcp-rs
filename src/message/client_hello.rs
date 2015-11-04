@@ -1,16 +1,16 @@
 use std::collections::{HashMap, HashSet};
 
-use super::message::Message;
+use super::Message;
 
-pub struct ClientHello {
-    message_name: &str,
-    data: HashMap<&str, &str>,
-    payload: Option<&[u8]>,
+pub struct ClientHello<'a> {
+    message_name: &'a str,
+    data: HashMap<&'a str, &'a str>,
+    payload: Option<&'a [u8]>,
 }
 
-impl Message for ClientHello {
+impl<'a> Message for ClientHello<'a> {
 
-    pub fn new() -> ClientHello {
+    pub fn new() -> ClientHello<'a> {
         ClientHello {
             message_name: "ClientHello",
             data: HashMap::new(),

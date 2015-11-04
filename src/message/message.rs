@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-trait Message {
+pub trait Message {
+
+    fn new() -> Self;
 
     fn get_message_name(&self) -> &str;
 
@@ -10,30 +12,32 @@ trait Message {
 
     fn set_payload(&mut self, data: &[u8]);
 
-    fn get_payload(&self) -> Option<&[u8]>
+    fn get_payload(&self) -> Option<&[u8]>;
 
     fn as_bytes(&self) -> &[u8] {
 
         let mut message_str = String::new();
 
-        message_str.push_str(self.get_message_name);
+        message_str.push_str(self.get_message_name());
         message_str.push_str("\n");
 
         for (key, value) in &self.get_all_fields() {
-            message_str.push_str(format!("{}={}", key, value));
+            message_str.push_str(&format!("{}={}", key, value));
             message_str.push_str("\n");
         }
 
         let mut result_buf;
         
         if let Some(payload) = self.get_payload() {            
-            message_str.push_str(format!("DataLength={}", payload.len()));
+            message_str.push_str(&format!("DataLength={}", payload.len()));
             message_str.push_str("\n");
             
             message_str.push_str("Data\n");
             result_buf = message_str.into_bytes();
 
-            result_buf.append(payload)
+            result_buf.append(&mut payload.to_vec());
+
+            &result_buf[..]
         }
         else {
             message_str.push_str("EndMessage\n");
@@ -43,3 +47,4 @@ trait Message {
     }
 
 }
+

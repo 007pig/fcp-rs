@@ -1,22 +1,20 @@
 use std::io;
-use super::message::Message;
+use ::message::Message;
 
 /// Event of command which is sent TO reader thread
-#[derive(Debug)]
 pub enum EventCmd {
     /// Close connection and terminate the thread
     Close,
 }
 
 /// Event of result which is sent FROM reader thread
-#[derive(Debug)]
 pub enum EventResult {
     /// Connection was manually closed. The string is the reason.
     Closed(&'static str),
     /// Connection has dropped.
     Disconnected,
     /// Message from the server.
-    Message(Message),
+    Message(Box<Message>),
     /// Error parsing a message from the server.
     ///
     /// This can probably be ignored, and it shouldn't ever happen, really.

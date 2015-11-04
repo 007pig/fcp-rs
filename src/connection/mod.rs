@@ -1,6 +1,6 @@
-mod connection;
-mod connection_manager;
-mod event;
+pub mod connection;
+pub mod connection_manager;
+pub mod event;
 
 pub use self::connection::Connection;
 pub use self::connection_manager::ConnectionManager;

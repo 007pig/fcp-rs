@@ -7,6 +7,7 @@ use std::sync::mpsc::*;
 use std::thread;
 
 use super::{EventCmd, EventResult};
+use ::message::Message;
 
 pub struct Connection {
     stream: TcpStream,
@@ -35,6 +36,9 @@ impl Connection {
 
             let mut result_msg = String::new();
             let mut line = String::new();
+
+            let mut data_length:u64 = 0;
+            let mut payload:&[u8];
             
             loop {
                 reader.read_line(&mut line).unwrap();
@@ -44,7 +48,32 @@ impl Connection {
 
                 if line == "EndMessage\n" {
                     tx_result.send(EventResult::Message(result_msg.clone())).unwrap();
+                    // Cleanup
                     result_msg.clear();
+                    data_length = 0;
+                }
+
+                if line.as_str().starts_with("DataLength") {
+                    // Try to get DataLength
+                    let v: Vec<&str> = line.as_str().split('=').collect();
+                    if v.len() == 2 {
+                        data_length = u64::from_str(v[1].trim());
+                    }
+                }
+
+                if line == "Data\n" && data_length > 0 {
+                    // Read payload buf
+                    let mut payload_handle = reader.take(data_length);
+
+                    payload = [0; data_length];
+                    payload_handle.read(&mut payload);
+
+                    
+                    
+                    // Cleanup
+                    result_msg.clear();
+                    data_length = 0;
+                    payload = &[];
                 }
 
                 // Clear line buffer

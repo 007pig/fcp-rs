@@ -20,7 +20,7 @@ fn it_works() {
         let msg_result = rx_result.recv().unwrap();
 
         match msg_result {
-            EventResult::Message(msg) => println!("{:?}", &msg),
+            //EventResult::Message(msg) => println!("{:?}", &msg),
             _ => unimplemented!(),
         }        
     }

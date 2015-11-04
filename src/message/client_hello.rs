@@ -20,25 +20,25 @@ impl<'a> ClientHello<'a> {
 
 }
 
-impl<'a> Message for ClientHello<'a> {
+impl<'a> Message<'a> for ClientHello<'a> {
 
-    pub fn get_message_name(&self) -> &str {
+    fn get_message_name(&self) -> &str {
         self.message_name
     }
 
-    pub fn set_field(&mut self, key: &str, data: &str) {
+    fn set_field(&mut self, key: &'a str, data: &'a str) {
         self.data.insert(key, data);
     }
 
-    pub fn get_all_fields(&self) -> HashMap<&str, &str> {
-        self.data
+    fn get_all_fields(&'a self) -> &'a HashMap<&str, &str> {
+        &self.data
     }
 
-    pub fn set_payload(&mut self, data: &[u8]) {
+    fn set_payload(&mut self, data: &'a [u8]) {
         self.payload = Some(data);
     }
 
-    pub fn get_payload(&self) -> Option<&[u8]> {
+    fn get_payload(&self) -> Option<&[u8]> {
         self.payload
     }
 }

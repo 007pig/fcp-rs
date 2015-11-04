@@ -12,15 +12,15 @@ use std::thread;
 use super::{EventCmd, EventResult};
 use ::message::{parse_message, Message};
 
-pub struct Connection {
+pub struct Connection<'a> {
     stream: TcpStream,
     reader_thread: Option<thread::JoinHandle<()>>,
     tx_cmd: Sender<EventCmd>,
-    rx_result: Receiver<EventResult>,
+    rx_result: Receiver<EventResult<'a>>,
 }
 
-impl Connection {
-    pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Connection> {
+impl<'a> Connection<'a> {
+    pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Connection<'static>> {
         let stream = try!(TcpStream::connect(addr));
 
         let reader_stream = try!(stream.try_clone());
@@ -41,7 +41,7 @@ impl Connection {
             let mut line = String::new();
 
             let mut data_length:u64 = 0;
-            let mut payload:&[u8];
+            let mut payload:Vec<u8> = Vec::new();
             
             loop {
                 reader.read_line(&mut line).unwrap();
@@ -51,7 +51,7 @@ impl Connection {
 
                 if line == "EndMessage\n" {
 
-                    let mut message = parse_message(result_msg.as_str(), None).unwrap();
+                    let message = parse_message(&result_msg, None).unwrap();
                     
                     tx_result.send(EventResult::Message(message)).unwrap();
                     // Cleanup
@@ -59,9 +59,9 @@ impl Connection {
                     data_length = 0;
                 }
 
-                if line.as_str().starts_with("DataLength") {
+                if line.starts_with("DataLength") {
                     // Try to get DataLength
-                    let v: Vec<&str> = line.as_str().split('=').collect();
+                    let v: Vec<&str> = line.split('=').collect();
                     if v.len() == 2 {
                         data_length = u64::from_str(v[1].trim()).unwrap();
                     }
@@ -69,18 +69,16 @@ impl Connection {
 
                 if line == "Data\n" && data_length > 0 {
                     // Read payload buf
-                    let mut payload_handle = reader.take(data_length);
+                    let mut tmp_vec = Vec::with_capacity(data_length as usize);
+                    let mut buffer = &mut tmp_vec[..];
+                    reader.read(&mut buffer).unwrap();
 
-                    let tmp_vec = Vec::with_capacity(data_length as usize);
-                    payload = &tmp_vec[..];
-                    payload_handle.read(&mut payload);
-
-                    
+                    payload.extend(buffer.iter().cloned());
                     
                     // Cleanup
                     result_msg.clear();
                     data_length = 0;
-                    payload = &[];
+                    payload.clear();
                 }
 
                 // Clear line buffer
@@ -120,7 +118,7 @@ impl Connection {
 
     }
 
-    pub fn get_rx_result(&self) -> &Receiver<EventResult> {
+    pub fn get_rx_result(&self) -> &Receiver<EventResult<'a>> {
         &self.rx_result
     }
 

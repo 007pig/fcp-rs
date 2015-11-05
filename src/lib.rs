@@ -12,7 +12,7 @@ fn it_works() {
     connection_manager.create_connection(key, &"127.0.0.1:9481");
 
     connection_manager.request_str(key, "ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n").unwrap();
-    connection_manager.request_str(key, "ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n").unwrap();
+    //connection_manager.request_str(key, "ClientHello\nName=My Freenet Client\nExpectedVersion=2.0\nEndMessage\n").unwrap();
 
     let rx_result = connection_manager.get_rx_result(key).unwrap();
 
@@ -20,7 +20,7 @@ fn it_works() {
         let msg_result = rx_result.recv().unwrap();
 
         match msg_result {
-            //EventResult::Message(msg) => println!("{:?}", &msg),
+            EventResult::Message(mut msg) => println!("{:?}", &*msg.to_vec()),
             _ => unimplemented!(),
         }        
     }

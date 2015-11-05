@@ -10,13 +10,13 @@ pub enum EventCmd {
 }
 
 /// Event of result which is sent FROM reader thread
-pub enum EventResult<'a> {
+pub enum EventResult {
     /// Connection was manually closed. The string is the reason.
     Closed(&'static str),
     /// Connection has dropped.
     Disconnected,
     /// Message from the server.
-    Message(Box<Message<'a>>),
+    Message(Box<Message>),
     /// Error parsing a message from the server.
     ///
     /// This can probably be ignored, and it shouldn't ever happen, really.

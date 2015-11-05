@@ -2,17 +2,17 @@ use std::collections::{HashMap, HashSet};
 
 use super::Message;
 
-pub struct ClientHello<'a> {
-    message_name: &'a str,
-    data: HashMap<&'a str, &'a str>,
-    payload: Option<&'a [u8]>,
+pub struct ClientHello {
+    message_name: String,
+    data: HashMap<String, String>,
+    payload: Option<Vec<u8>>,
 }
 
-impl<'a> ClientHello<'a> {
+impl ClientHello {
 
-    pub fn new() -> ClientHello<'a> {
+    pub fn new() -> ClientHello {
         ClientHello {
-            message_name: "ClientHello",
+            message_name: "ClientHello".to_string(),
             data: HashMap::new(),
             payload: None,
         }
@@ -20,25 +20,25 @@ impl<'a> ClientHello<'a> {
 
 }
 
-impl<'a> Message<'a> for ClientHello<'a> {
+impl Message for ClientHello {
 
     fn get_message_name(&self) -> &str {
-        self.message_name
+        &*self.message_name
     }
 
-    fn set_field(&mut self, key: &'a str, data: &'a str) {
+    fn set_field(&mut self, key: String, data: String) {
         self.data.insert(key, data);
     }
 
-    fn get_all_fields(&'a self) -> &'a HashMap<&str, &str> {
+    fn get_all_fields(&self) -> &HashMap<String, String> {
         &self.data
     }
 
-    fn set_payload(&mut self, data: &'a [u8]) {
+    fn set_payload(&mut self, data: Vec<u8>) {
         self.payload = Some(data);
     }
 
-    fn get_payload(&self) -> Option<&[u8]> {
-        self.payload
+    fn get_payload(&mut self) -> Option<Vec<u8>> {
+        self.payload.take()
     }
 }

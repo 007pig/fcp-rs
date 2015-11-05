@@ -12,15 +12,15 @@ use std::thread;
 use super::{EventCmd, EventResult};
 use ::message::{parse_message, Message};
 
-pub struct Connection<'a> {
+pub struct Connection {
     stream: TcpStream,
     reader_thread: Option<thread::JoinHandle<()>>,
     tx_cmd: Sender<EventCmd>,
-    rx_result: Receiver<EventResult<'a>>,
+    rx_result: Receiver<EventResult>,
 }
 
-impl<'a> Connection<'a> {
-    pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Connection<'static>> {
+impl Connection {
+    pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<Connection> {
         let stream = try!(TcpStream::connect(addr));
 
         let reader_stream = try!(stream.try_clone());
@@ -51,7 +51,7 @@ impl<'a> Connection<'a> {
 
                 if line == "EndMessage\n" {
 
-                    let message = parse_message(&result_msg, None).unwrap();
+                    let message = parse_message(&*result_msg, None).unwrap();
                     
                     tx_result.send(EventResult::Message(message)).unwrap();
                     // Cleanup
@@ -118,7 +118,7 @@ impl<'a> Connection<'a> {
 
     }
 
-    pub fn get_rx_result(&self) -> &Receiver<EventResult<'a>> {
+    pub fn get_rx_result(&self) -> &Receiver<EventResult> {
         &self.rx_result
     }
 
